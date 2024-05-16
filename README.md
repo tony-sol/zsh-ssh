@@ -1,6 +1,9 @@
-# zsh-ssh
+# zsh-ssh (tony-sol's fork)
 
 Better host completion for ssh in Zsh.
+
+> [!IMPORTANT]
+> Please, rate original project [zsh-ssh](https://github.com/sunlei/zsh-ssh)
 
 [![asciicast](https://asciinema.org/a/381405.svg)](https://asciinema.org/a/381405)
 
