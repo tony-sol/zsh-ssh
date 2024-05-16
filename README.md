@@ -1,6 +1,16 @@
-# zsh-ssh
+# zsh-ssh (tony-sol's fork)
 
 Better host completion for ssh in Zsh.
+
+> [!IMPORTANT]
+> Please, rate original project [zsh-ssh](https://github.com/sunlei/zsh-ssh)
+> <details>
+>   <summary>Difference from original project</summary>
+>
+>   - `User` column removed
+>
+>   - Improved ~/.ssh/config file parsing (excluded duplicates, taking global `Hostname`, etc.)
+> </details>
 
 [![asciicast](https://asciinema.org/a/381405.svg)](https://asciinema.org/a/381405)
 
@@ -16,18 +26,18 @@ Better host completion for ssh in Zsh.
 
 ## Installation
 
-Make sure you have [fzf](https://github.com/junegunn/fzf) installed.
+Make sure you have python3 and [fzf](https://github.com/junegunn/fzf) installed.
 
 ### Zinit
 
 ```shell
-zinit light sunlei/zsh-ssh
+zinit light tony-sol/zsh-ssh
 ```
 
 ### Antigen
 
 ```shell
-antigen bundle sunlei/zsh-ssh
+antigen bundle tony-sol/zsh-ssh
 ```
 
 ### Oh My Zsh
@@ -35,7 +45,7 @@ antigen bundle sunlei/zsh-ssh
 1. Clone this repository into `$ZSH_CUSTOM/plugins` (by default `~/.oh-my-zsh/custom/plugins`)
 
     ```shell
-    git clone https://github.com/sunlei/zsh-ssh ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-ssh
+    git clone https://github.com/tony-sol/zsh-ssh ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-ssh
     ```
 
 2. Add the plugin to the list of plugins for Oh My Zsh to load (inside `~/.zshrc`):
@@ -52,7 +62,7 @@ antigen bundle sunlei/zsh-ssh
 
     ```toml
     [plugins.zsh-ssh]
-    github = 'sunlei/zsh-ssh'
+    github = 'tony-sol/zsh-ssh'
     ```
 
 2. Run `sheldon lock` to install the plugin.
@@ -64,7 +74,7 @@ antigen bundle sunlei/zsh-ssh
 1. Clone this repository somewhere on your machine. For example: `~/.zsh/zsh-ssh`.
 
     ```shell
-    git clone https://github.com/sunlei/zsh-ssh ~/.zsh/zsh-ssh
+    git clone https://github.com/tony-sol/zsh-ssh ~/.zsh/zsh-ssh
     ```
 
 2. Add the following to your `.zshrc`:
@@ -88,7 +98,6 @@ You can use `#_Desc` to set description.
 ```text
 Host Bastion-Host
     Hostname 1.1.1.1
-    User sunlei
 
 Host Development-Host
     Hostname 2.2.2.2
