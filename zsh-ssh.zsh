@@ -64,6 +64,10 @@ __ssh_host_list() {
     esac
   done
 
+  # @note, if header already in `host_list`, first line must be skipped in grep-check
+  # if [ -n "$1" ]; then
+  #   host_list=$(command sed "2,\${/$1/!d}" <<< "$host_list")
+  # fi
   host_list=$(command grep -i "$1" <<< "$host_list")
 
   echo $host_list
@@ -116,13 +120,13 @@ fzf-complete-ssh() {
     result=$(__ssh_host_list ${tokens[2, -1]})
     fuzzy_input="${LBUFFER#"$tokens[1] "}"
 
-    if [ -z "$result" ]; then
+    if [ -z "$result" ]; then # @note [ -z "$result" ] || [ $(echo $result | wc -l) -eq 1 ] with header
       zle ${fzf_ssh_default_completion:-expand-or-complete}
       return
     fi
 
-    if [ $(echo $result | wc -l) -eq 1 ]; then
-      __set_lbuffer $result false
+    if [ $(echo $result | wc -l) -eq 1 ]; then # @note -eq 2 with header
+      __set_lbuffer $result false # @note "${result#*$'\n'}" with header
       zle reset-prompt
       # zle redisplay
       return
