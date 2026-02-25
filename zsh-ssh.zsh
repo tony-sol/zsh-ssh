@@ -29,10 +29,15 @@ _parse_config_file() {
       for raw_path in "${include_paths[@]}"; do
         # Expand ~ and environment variables in the path
         eval "local expanded=\${(e)raw_path}"
+        # local expanded="${raw_path/#~/$HOME}"
 
         # If path is relative, resolve it relative to the current config file
         if [[ "$expanded" != /* ]]; then
-          expanded="$(dirname "$config_file_path")/$expanded"
+          if [[ "$expanded" == ~* ]]; then
+            expanded="${expanded/#\~/$HOME}"
+          else
+            expanded="$(dirname "$config_file_path")/$expanded"
+          fi
         fi
 
         # Expand wildcards (e.g. *.conf) and loop over each matched file
