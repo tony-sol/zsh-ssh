@@ -88,10 +88,6 @@ _ssh_host_list() {
       return key "#-#" value
     }
 
-    function contains_star(str) {
-        return index(str, "*") > 0
-    }
-
     function starts_or_ends_with_star(str) {
         start_char = substr(str, 1, 1)
         end_char = substr(str, length(str), 1)
@@ -103,8 +99,6 @@ _ssh_host_list() {
       IGNORECASE = 1
       FS="\n"
       RS=""
-
-      host_list = ""
     }
     {
       match_directive = ""
@@ -116,6 +110,7 @@ _ssh_host_list() {
       user = " "
       host_name = ""
       alias = ""
+      aliases = ""
       desc = ""
       desc_formated = " "
 
@@ -135,26 +130,44 @@ _ssh_host_list() {
         if (key == "#_desc") { desc = value }
       }
 
-      split(aliases, alias_list, " ")
-      for (i in alias_list) {
+      if (desc) {
+        desc_formated = sprintf("[\033[00;34m%s\033[0m]", desc)
+      }
+
+      n_aliases = split(aliases, alias_list, " ")
+      for (i = 1; i <= n_aliases; i++) {
         alias = alias_list[i]
+        effective_hostname = host_name ? host_name : alias
 
-        if (!host_name && alias ) {
-          host_name = alias
+        if (!(effective_hostname && !starts_or_ends_with_star(effective_hostname)) || !(alias && !starts_or_ends_with_star(alias)) || match_directive) {
+          continue
         }
 
-        if (desc) {
-          desc_formated = sprintf("[\033[00;34m%s\033[0m]", desc)
-        }
-
-        if ((host_name && !starts_or_ends_with_star(host_name)) && (alias && !starts_or_ends_with_star(alias)) && !match_directive) {
-          host = sprintf("%s|->|%s|%s|%s\n", alias, host_name, user, desc_formated)
-          host_list = host_list host
+        # Per-alias aggregation: each field uses first-non-empty wins
+        # Extra rule: explicit HostName takes precedence over fallback value
+        if (!(alias in alias_hn)) {
+          alias_hn[alias] = effective_hostname
+          alias_user[alias] = user
+          alias_desc[alias] = desc_formated
+          if (host_name) alias_explicit_hn[alias] = 1
+        } else {
+          if (host_name && !alias_explicit_hn[alias]) {
+            alias_hn[alias] = host_name
+            alias_explicit_hn[alias] = 1
+          }
+          if (user != " " && alias_user[alias] == " ") {
+            alias_user[alias] = user
+          }
+          if (desc_formated != " " && alias_desc[alias] == " ") {
+            alias_desc[alias] = desc_formated
+          }
         }
       }
     }
     END {
-      print host_list
+      for (a in alias_hn) {
+        printf "%s|->|%s|%s|%s\n", a, alias_hn[a], alias_user[a], alias_desc[a]
+      }
     }
   ')
 
