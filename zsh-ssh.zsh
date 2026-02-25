@@ -62,6 +62,8 @@ _ssh_host_list() {
 
   ssh_config=$(_parse_config_file $SSH_CONFIG_FILE)
   ssh_config=$(echo $ssh_config | command grep -v -E "^\s*#[^_]")
+  # Ensure blank line before each Host/Match block for AWK paragraph mode (RS="")
+  ssh_config=$(echo $ssh_config | command awk '/^[[:space:]]*[Hh]ost[[:space:]]|^[[:space:]]*[Mm]atch[[:space:]]/{print ""} {print}')
 
   host_list=$(echo $ssh_config | command awk '
     function join(array, start, end, sep, result, i) {
