@@ -22,7 +22,7 @@ _parse_config_file() {
   # Read the file line by line
   while IFS= read -r line || [[ -n "$line" ]]; do
     # Match lines starting with 'Include'
-    if [[ $line =~ ^[Ii]nclude[[:space:]]+(.*) ]] && (( $#match > 0 )); then
+    if [[ $line =~ ^[Ii]nclude[[:space:]=]+(.*) ]] && (( $#match > 0 )); then
       # Split the rest of the line into individual paths
       local include_paths=(${(z)match[1]})
 
@@ -79,7 +79,8 @@ _ssh_host_list() {
     }
 
     function parse_line(line) {
-      n = split(line, line_array, " ")
+      gsub(/^[[:space:]]+/, "", line)
+      n = split(line, line_array, /[[:space:]]*=[[:space:]]*|[[:space:]]+/)
 
       key = line_array[1]
       value = join(line_array, 2, n)
