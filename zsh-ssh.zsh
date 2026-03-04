@@ -1,16 +1,20 @@
 #!/usr/bin/env zsh
 
 setopt no_beep # don't beep
+zstyle ':completion:*:ssh:*' hosts off # disable built-in hosts completion
 
 SSH_CONFIG_FILE="${SSH_CONFIG_FILE:-$HOME/.ssh/config}"
 
 # Parse the file and handle the include directive.
 __parse_config_file() {
-  # Enable PCRE matching
+  # Enable PCRE matching and handle local options
   setopt localoptions rematchpcre globdots extendedglob
   unsetopt nomatch
 
+  # Resolve the full path of the input config file
   local config_file_path=$(realpath "$1")
+
+  # Read the file line by line
   while IFS= read -r line || [[ -n "$line" ]]; do
     # @hack: black POSIX magic is here:
     # ${line##[[:space:]]#} : trim leading whitespaces
@@ -108,7 +112,7 @@ __set_lbuffer() {
 }
 
 fzf-complete-ssh() {
-  local tokens cmd result selected_host
+  local tokens cmd result key selection
   setopt localoptions noshwordsplit noksh_arrays noposixbuiltins
 
   tokens=(${(z)LBUFFER})
@@ -120,8 +124,11 @@ fzf-complete-ssh() {
     result=$(__ssh_host_list ${tokens[2, -1]})
     fuzzy_input="${LBUFFER#"$tokens[1] "}"
 
+    # When host parameters exist, don't fall back to default completion to avoid slow hosts enumeration
     if [ -z "$result" ]; then # @note [ -z "$result" ] || [ $(echo $result | wc -l) -eq 1 ] with header
-      zle ${fzf_ssh_default_completion:-expand-or-complete}
+      if [[ -z "${tokens[2]}" || "${tokens[-1]}" == -* ]]; then
+        zle ${fzf_ssh_default_completion:-expand-or-complete}
+      fi
       return
     fi
 
@@ -146,16 +153,34 @@ fzf-complete-ssh() {
       --no-separator \
       --bind 'shift-tab:up,tab:down,bspace:backward-delete-char/eof' \
       --preview 'ssh -GT $(cut -f 1 -d " " <<< {}) | grep -E -i -e "^host |^user |^hostname |^port |^controlpath |^forwardagent |^localforward |^identityfile |^remoteforward |^proxycommand |^proxyjump |^forkafterauthentication " | column -t' \
-      --preview-window=right:40%
+      --preview-window=right:40% \
+      --expect=alt-enter,enter
     )
 
     if [ -n "$result" ]; then
-      __set_lbuffer $result true
-      zle accept-line
+      key=${result%%$'\n'*}
+      if [[ "$key" == "$result" ]]; then
+        selection="$result"
+        key=""
+      else
+        selection=${result#*$'\n'}
+      fi
+
+      if [ -n "$selection" ]; then
+        __set_lbuffer "$selection" true
+        if [[ "$key" == "alt-enter" ]]; then
+          zle reset-prompt
+        else
+          zle accept-line
+        fi
+      fi
     fi
 
-    zle reset-prompt
-    # zle redisplay
+    # Only reset prompt if not already done for alt-enter
+    if [[ "$key" != "alt-enter" ]]; then
+      zle reset-prompt
+      # zle redisplay
+    fi
 
   # Fall back to default completion
   else
